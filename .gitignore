@@ -6,7 +6,8 @@
 service_role*
 credentials*.json
 node_modules/
-.claude/
+.claude/*
+!.claude/CLAUDE.md
 .agents/
 supabase/
 data/
