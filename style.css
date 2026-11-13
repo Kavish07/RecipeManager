@@ -89,17 +89,105 @@ h1, h2, h3 {
   outline-offset: 1px;
 }
 
+.field textarea {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+
+.field textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.add-recipe-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.add-recipe-form .field-wide { grid-column: span 2; }
+
+.add-recipe-status {
+  grid-column: span 2;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.add-recipe-submit {
+  grid-column: span 2;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.6rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.add-recipe-submit:hover,
+.add-recipe-submit:focus-visible {
+  opacity: 0.9;
+  outline: none;
+}
+
+@media (max-width: 480px) {
+  .add-recipe-form { grid-template-columns: 1fr; }
+  .add-recipe-form .field-wide,
+  .add-recipe-status,
+  .add-recipe-submit {
+    grid-column: span 1;
+  }
+}
+
 .field-suffix {
   font-size: 0.8rem;
   color: var(--text-muted);
 }
 
-.result-count {
+.result-row {
   max-width: 1100px;
   margin: 1rem auto 0;
   padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.result-count {
+  margin: 0;
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+.add-recipe-btn {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.5rem 0.9rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.add-recipe-btn:hover,
+.add-recipe-btn:focus-visible {
+  opacity: 0.9;
+  outline: none;
+}
+
+.add-recipe-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 main {

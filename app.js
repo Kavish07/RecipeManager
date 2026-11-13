@@ -11,15 +11,30 @@
   const personsInput = document.getElementById('persons');
   const haveInput = document.getElementById('haveIngredients');
 
+  // Fill these in after creating a Supabase project (see supabase/schema.sql)
+  // to store recipes in a shared database instead of the local file.
+  const SUPABASE_URL = '';
+  const SUPABASE_ANON_KEY = '';
+
+  const supabaseClient = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+
   let recipes = [];
-  try {
-    const res = await fetch('data/recipes.json');
-    recipes = await res.json();
-  } catch (err) {
-    grid.replaceChildren();
-    emptyState.hidden = false;
-    emptyState.textContent = 'Could not load recipes.json — check the file exists next to index.html.';
-    return;
+  if (supabaseClient) {
+    const { data, error } = await supabaseClient.from('recipes').select('*').order('name');
+    if (!error && data) recipes = data;
+  }
+  if (!recipes.length) {
+    try {
+      const res = await fetch('data/recipes.json');
+      recipes = await res.json();
+    } catch (err) {
+      grid.replaceChildren();
+      emptyState.hidden = false;
+      emptyState.textContent = 'Could not load recipes — check Supabase is reachable or data/recipes.json exists.';
+      return;
+    }
   }
 
   function parseHaveList(raw) {
@@ -246,6 +261,83 @@
   // --- Meal plan calendar ---
 
   const recipesById = new Map(recipes.map((r) => [r.id, r]));
+
+  // --- Add a recipe ---
+
+  const openAddRecipe = document.getElementById('openAddRecipe');
+  const addRecipeDialog = document.getElementById('addRecipeDialog');
+  const addRecipeForm = document.getElementById('addRecipeForm');
+  const addRecipeStatus = document.getElementById('addRecipeStatus');
+  const addRecipeClose = document.getElementById('addRecipeClose');
+
+  openAddRecipe.disabled = !supabaseClient;
+  openAddRecipe.title = supabaseClient ? '' : 'Connect a Supabase project in app.js to enable this (see supabase/schema.sql)';
+
+  openAddRecipe.addEventListener('click', () => {
+    addRecipeStatus.textContent = '';
+    addRecipeForm.reset();
+    addRecipeDialog.showModal();
+  });
+  addRecipeClose.addEventListener('click', () => addRecipeDialog.close());
+  addRecipeDialog.addEventListener('click', (e) => {
+    if (e.target === addRecipeDialog) addRecipeDialog.close();
+  });
+
+  function splitLines(raw) {
+    return raw.split('\n').map((s) => s.trim()).filter(Boolean);
+  }
+
+  function splitCommas(raw) {
+    return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+
+  function slugify(name) {
+    return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  }
+
+  addRecipeForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!supabaseClient) return;
+
+    const name = document.getElementById('newName').value.trim();
+    if (!name) return;
+
+    const prepTime = parseInt(document.getElementById('newPrepTime').value, 10) || null;
+    const cookTime = parseInt(document.getElementById('newCookTime').value, 10) || null;
+
+    const newRecipe = {
+      id: `${slugify(name)}-${Date.now().toString(36)}`,
+      name,
+      cuisine: document.getElementById('newCuisine').value.trim() || null,
+      category: splitCommas(document.getElementById('newCategory').value),
+      tags: splitCommas(document.getElementById('newTags').value),
+      prepTime,
+      cookTime,
+      totalTime: (prepTime || 0) + (cookTime || 0) || null,
+      servings: parseInt(document.getElementById('newServings').value, 10) || 4,
+      rating: null,
+      source: '',
+      tried: false,
+      ingredients: splitLines(document.getElementById('newIngredients').value),
+      instructions: splitLines(document.getElementById('newInstructions').value),
+      notes: document.getElementById('newNotes').value.trim() || null,
+    };
+
+    addRecipeStatus.textContent = 'Saving…';
+    const { error } = await supabaseClient.from('recipes').insert(newRecipe);
+    if (error) {
+      addRecipeStatus.textContent = 'Could not save the recipe. Try again.';
+      return;
+    }
+
+    recipes.push(newRecipe);
+    recipesById.set(newRecipe.id, newRecipe);
+    addRecipeDialog.close();
+    render();
+  });
+
+  // --- Meal plan calendar ---
+
   const PLAN_STORAGE_KEY = 'recipeManager.mealPlan';
 
   function loadPlan() {
