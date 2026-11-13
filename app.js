@@ -13,8 +13,8 @@
 
   // Fill these in after creating a Supabase project (see supabase/schema.sql)
   // to store recipes in a shared database instead of the local file.
-  const SUPABASE_URL = '';
-  const SUPABASE_ANON_KEY = '';
+  const SUPABASE_URL = 'https://yrgqszkryitvctagdfnd.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_cJf5uQcY2jHMH6LLCYxcTA_3LPnLXWX';
 
   const supabaseClient = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
     ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)

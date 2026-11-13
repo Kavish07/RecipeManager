@@ -1,0 +1,9 @@
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+service_role*
+credentials*.json
+node_modules/
+.claude/settings.local.json
