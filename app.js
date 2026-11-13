@@ -11,10 +11,11 @@
   const personsInput = document.getElementById('persons');
   const haveInput = document.getElementById('haveIngredients');
 
-  // Fill these in after creating a Supabase project (see supabase/schema.sql)
-  // to store recipes in a shared database instead of the local file.
-  const SUPABASE_URL = 'https://yrgqszkryitvctagdfnd.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_cJf5uQcY2jHMH6LLCYxcTA_3LPnLXWX';
+  // Replaced at deploy time by .github/workflows/deploy.yml from the
+  // SUPABASE_URL / SUPABASE_ANON_KEY repository variables. For local dev,
+  // fill these in directly (see supabase/schema.sql).
+  const SUPABASE_URL = '__SUPABASE_URL__';
+  const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
 
   const supabaseClient = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
     ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
