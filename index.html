@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recipe Manager</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>Recipe Manager</h1>
+    <p class="tagline">Find something to cook that fits your time, your pantry, and how many you're feeding.</p>
+  </header>
+
+  <nav class="tabs" id="viewTabs" role="tablist">
+    <button type="button" role="tab" id="tabRecipes" aria-selected="true" aria-controls="recipesView" class="tab-active">Recipes</button>
+    <button type="button" role="tab" id="tabPlan" aria-selected="false" aria-controls="planView">Meal Plan</button>
+  </nav>
+
+  <section id="recipesView" role="tabpanel" aria-labelledby="tabRecipes">
+  <form class="filters" id="filters" autocomplete="off">
+    <div class="field">
+      <label for="search">Search</label>
+      <input type="text" id="search" placeholder="Name, cuisine, tag…">
+    </div>
+    <div class="field">
+      <label for="maxTime">Max total time (min)</label>
+      <input type="number" id="maxTime" min="0" step="5" placeholder="Any">
+    </div>
+    <div class="field">
+      <label for="persons">Cooking for</label>
+      <input type="number" id="persons" min="1" step="1" value="4"> <span class="field-suffix">people</span>
+    </div>
+    <div class="field field-wide">
+      <label for="haveIngredients">Ingredients you have</label>
+      <input type="text" id="haveIngredients" placeholder="e.g. spinach, onion, paneer">
+    </div>
+  </form>
+
+  <p class="result-count" id="resultCount" aria-live="polite"></p>
+
+  <main>
+    <ul class="recipe-grid" id="recipeGrid"></ul>
+    <p class="empty-state" id="emptyState" hidden>No recipes match these filters. Try raising the time limit or clearing the search.</p>
+  </main>
+  </section>
+
+  <section id="planView" role="tabpanel" aria-labelledby="tabPlan" hidden>
+    <div class="plan-header">
+      <button type="button" id="planPrev" aria-label="Previous month">&larr;</button>
+      <h2 id="planMonthLabel"></h2>
+      <button type="button" id="planNext" aria-label="Next month">&rarr;</button>
+    </div>
+    <div class="plan-weekdays" id="planWeekdays"></div>
+    <div class="plan-grid" id="planGrid"></div>
+  </section>
+
+  <dialog id="recipeDialog" class="recipe-dialog">
+    <button type="button" class="dialog-close" id="dialogClose" aria-label="Close">&times;</button>
+    <div id="dialogContent"></div>
+  </dialog>
+
+  <dialog id="planDayDialog" class="recipe-dialog">
+    <button type="button" class="dialog-close" id="planDayClose" aria-label="Close">&times;</button>
+    <h2 id="planDayTitle"></h2>
+    <div class="field">
+      <label for="planDaySearch">Add a recipe</label>
+      <input type="text" id="planDaySearch" placeholder="Search recipes…">
+    </div>
+    <ul class="plan-day-results" id="planDayResults"></ul>
+    <h3>Planned</h3>
+    <ul class="plan-day-assigned" id="planDayAssigned"></ul>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
