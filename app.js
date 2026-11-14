@@ -10,6 +10,35 @@
   const maxTimeInput = document.getElementById('maxTime');
   const personsInput = document.getElementById('persons');
   const haveInput = document.getElementById('haveIngredients');
+  const avoidInput = document.getElementById('avoidIngredients');
+  const allergyHint = document.getElementById('allergyHint');
+
+  const ALLERGEN_SUBSTITUTES = {
+    milk: 'oat milk or almond milk',
+    cream: 'coconut cream or cashew cream',
+    butter: 'a neutral oil or vegan butter',
+    cheese: 'nutritional yeast or a dairy-free cheese',
+    paneer: 'extra-firm tofu',
+    yogurt: 'coconut yogurt',
+    egg: 'a flax egg (1 tbsp ground flaxseed + 3 tbsp water) per egg',
+    eggs: 'a flax egg (1 tbsp ground flaxseed + 3 tbsp water) per egg',
+    peanut: 'sunflower seed butter',
+    peanuts: 'toasted sunflower seeds or pepitas',
+    cashew: 'toasted sunflower seeds',
+    almond: 'sunflower seeds or pepitas',
+    walnut: 'toasted pepitas',
+    wheat: 'a gluten-free flour blend',
+    flour: 'a gluten-free flour blend',
+    gluten: 'a gluten-free flour or noodle blend',
+    soy: 'coconut aminos',
+    shrimp: 'thinly sliced mushrooms',
+    prawn: 'thinly sliced mushrooms',
+    prawns: 'thinly sliced mushrooms',
+    fish: 'extra-firm tofu or jackfruit',
+    shellfish: 'mushrooms or extra-firm tofu',
+    sesame: 'toasted sunflower or pepita seeds',
+    dairy: 'a plant-based milk, cream, or cheese alternative',
+  };
 
   // Replaced at deploy time by .github/workflows/deploy.yml from the
   // SUPABASE_URL / SUPABASE_ANON_KEY repository variables. For local dev,
@@ -54,6 +83,18 @@
     return { matched: matched.length, total: recipe.ingredients.length };
   }
 
+  function allergyMatch(recipe, avoidList) {
+    if (!avoidList.length) return null;
+    const hits = new Set();
+    for (const line of recipe.ingredients) {
+      const lower = line.toLowerCase();
+      for (const avoid of avoidList) {
+        if (avoid && lower.includes(avoid)) hits.add(avoid);
+      }
+    }
+    return hits.size ? hits : null;
+  }
+
   function matchesSearch(recipe, term) {
     if (!term) return true;
     const haystack = [recipe.name, recipe.cuisine, ...(recipe.category || []), ...(recipe.tags || [])]
@@ -66,12 +107,31 @@
     const term = searchInput.value.trim().toLowerCase();
     const maxTime = maxTimeInput.value ? parseInt(maxTimeInput.value, 10) : null;
     const haveList = parseHaveList(haveInput.value);
+    const avoidList = parseHaveList(avoidInput.value);
 
+    const avoidedTerms = new Set();
     let filtered = recipes.filter((r) => {
       if (maxTime !== null && r.totalTime !== null && r.totalTime > maxTime) return false;
       if (!matchesSearch(r, term)) return false;
+      const allergyHits = allergyMatch(r, avoidList);
+      if (allergyHits) {
+        for (const hit of allergyHits) avoidedTerms.add(hit);
+        return false;
+      }
       return true;
     });
+
+    if (avoidedTerms.size) {
+      const suggestions = [...avoidedTerms].map((term) => {
+        const sub = ALLERGEN_SUBSTITUTES[term];
+        return sub ? `${term} → try ${sub}` : term;
+      });
+      allergyHint.hidden = false;
+      allergyHint.textContent = `Hiding recipes with: ${suggestions.join('; ')}.`;
+    } else {
+      allergyHint.hidden = true;
+      allergyHint.textContent = '';
+    }
 
     const withMatch = filtered
       .map((r) => ({ recipe: r, match: ingredientMatch(r, haveList) }))
@@ -112,6 +172,7 @@
     meta.className = 'recipe-meta';
     meta.appendChild(badge(recipe.cuisine));
     if (recipe.totalTime !== null) meta.appendChild(badge(`${recipe.totalTime} min`));
+    if (recipe.nutrition && recipe.nutrition.calories) meta.appendChild(badge(`${recipe.nutrition.calories} kcal`));
     for (const cat of recipe.category || []) meta.appendChild(badge(cat));
     btn.appendChild(meta);
 
@@ -196,6 +257,13 @@
       dialogContent.appendChild(noData('Instructions not added yet.'));
     }
 
+    if (recipe.nutrition) {
+      const nutH = document.createElement('h3');
+      nutH.textContent = 'Nutrition (per serving)';
+      dialogContent.appendChild(nutH);
+      dialogContent.appendChild(nutritionGrid(recipe.nutrition));
+    }
+
     if (recipe.notes) {
       const notesH = document.createElement('h3');
       notesH.textContent = 'Notes';
@@ -226,12 +294,38 @@
     return p;
   }
 
+  function nutritionGrid(nutrition) {
+    const div = document.createElement('div');
+    div.className = 'nutrition-grid';
+    const stats = [
+      ['Calories', nutrition.calories, 'kcal'],
+      ['Protein', nutrition.protein, 'g'],
+      ['Carbs', nutrition.carbs, 'g'],
+      ['Fat', nutrition.fat, 'g'],
+    ];
+    for (const [label, value, unit] of stats) {
+      if (value === null || value === undefined) continue;
+      const stat = document.createElement('div');
+      stat.className = 'nutrition-stat';
+      const val = document.createElement('span');
+      val.className = 'nutrition-value';
+      val.textContent = `${value}${unit === 'kcal' ? '' : 'g'}`;
+      const lab = document.createElement('span');
+      lab.className = 'nutrition-label';
+      lab.textContent = unit === 'kcal' ? `${label} (kcal)` : label;
+      stat.appendChild(val);
+      stat.appendChild(lab);
+      div.appendChild(stat);
+    }
+    return div;
+  }
+
   dialogClose.addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', (e) => {
     if (e.target === dialog) dialog.close();
   });
 
-  for (const el of [searchInput, maxTimeInput, haveInput]) {
+  for (const el of [searchInput, maxTimeInput, haveInput, avoidInput]) {
     el.addEventListener('input', render);
   }
   personsInput.addEventListener('input', render);
@@ -306,6 +400,19 @@
     const prepTime = parseInt(document.getElementById('newPrepTime').value, 10) || null;
     const cookTime = parseInt(document.getElementById('newCookTime').value, 10) || null;
 
+    const calories = parseInt(document.getElementById('newCalories').value, 10);
+    const protein = parseInt(document.getElementById('newProtein').value, 10);
+    const carbs = parseInt(document.getElementById('newCarbs').value, 10);
+    const fat = parseInt(document.getElementById('newFat').value, 10);
+    const nutrition = [calories, protein, carbs, fat].some((n) => !isNaN(n))
+      ? {
+        calories: isNaN(calories) ? null : calories,
+        protein: isNaN(protein) ? null : protein,
+        carbs: isNaN(carbs) ? null : carbs,
+        fat: isNaN(fat) ? null : fat,
+      }
+      : null;
+
     const newRecipe = {
       id: `${slugify(name)}-${Date.now().toString(36)}`,
       name,
@@ -316,6 +423,7 @@
       cookTime,
       totalTime: (prepTime || 0) + (cookTime || 0) || null,
       servings: parseInt(document.getElementById('newServings').value, 10) || 4,
+      nutrition,
       rating: null,
       source: '',
       tried: false,

@@ -35,12 +35,17 @@
       <label for="haveIngredients">Ingredients you have</label>
       <input type="text" id="haveIngredients" placeholder="e.g. spinach, onion, paneer">
     </div>
+    <div class="field field-wide">
+      <label for="avoidIngredients">Allergies / ingredients to avoid</label>
+      <input type="text" id="avoidIngredients" placeholder="e.g. peanuts, shellfish, dairy">
+    </div>
   </form>
 
   <div class="result-row">
     <p class="result-count" id="resultCount" aria-live="polite"></p>
     <button type="button" id="openAddRecipe" class="add-recipe-btn">+ Add a recipe</button>
   </div>
+  <p class="allergy-hint" id="allergyHint" aria-live="polite" hidden></p>
 
   <main>
     <ul class="recipe-grid" id="recipeGrid"></ul>
@@ -94,6 +99,22 @@
       <div class="field">
         <label for="newServings">Servings</label>
         <input type="number" id="newServings" min="1" value="4">
+      </div>
+      <div class="field">
+        <label for="newCalories">Calories (per serving)</label>
+        <input type="number" id="newCalories" min="0" placeholder="kcal">
+      </div>
+      <div class="field">
+        <label for="newProtein">Protein (g, per serving)</label>
+        <input type="number" id="newProtein" min="0">
+      </div>
+      <div class="field">
+        <label for="newCarbs">Carbs (g, per serving)</label>
+        <input type="number" id="newCarbs" min="0">
+      </div>
+      <div class="field">
+        <label for="newFat">Fat (g, per serving)</label>
+        <input type="number" id="newFat" min="0">
       </div>
       <div class="field field-wide">
         <label for="newIngredients">Ingredients (one per line)</label>
